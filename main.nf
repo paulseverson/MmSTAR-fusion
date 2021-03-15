@@ -745,34 +745,36 @@ process fusion_inspector {
 /*
  * Parse software version numbers
  */
-process get_software_versions {
-    publishDir "${params.outdir}/pipeline_info", mode: 'copy',
-        saveAs: { filename ->
-                      if (filename.indexOf(".csv") > 0) filename
-                      else null
-                }
-
-    output:
-    file 'software_versions_mqc.yaml' into ch_software_versions_yaml
-    file "software_versions.csv"
-
-    script:
-    """
-    echo ${workflow.manifest.version} > v_pipeline.txt
-    echo ${workflow.nextflow.version} > v_nextflow.txt
-    fastqc --version > v_fastqc.txt
-    multiqc --version > v_multiqc.txt
-    cat ${baseDir}/containers/arriba/environment.yml > v_arriba.txt
-    cat ${baseDir}/containers/fusioncatcher/environment.yml > v_fusioncatcher.txt
-    cat ${baseDir}/containers/star-fusion/environment.yml > v_fusion_inspector.txt
-    cat ${baseDir}/containers/star-fusion/environment.yml > v_star_fusion.txt
-    cat ${baseDir}/containers/ericscript/environment.yml > v_ericscript.txt
-    cat ${baseDir}/containers/pizzly/environment.yml > v_pizzly.txt
-    cat ${baseDir}/containers/squid/environment.yml > v_squid.txt
-    cat ${baseDir}/environment.yml > v_fusion_report.txt
-    scrape_software_versions.py &> software_versions_mqc.yaml
-    """
-}
+/*
+* process get_software_versions {
+*    publishDir "${params.outdir}/pipeline_info", mode: 'copy',
+*        saveAs: { filename ->
+*                      if (filename.indexOf(".csv") > 0) filename
+*                      else null
+*               }
+*
+*    output:
+*    file 'software_versions_mqc.yaml' into ch_software_versions_yaml
+*    file "software_versions.csv"
+*
+*    script:
+*   """
+*    echo ${workflow.manifest.version} > v_pipeline.txt
+*    echo ${workflow.nextflow.version} > v_nextflow.txt
+*    fastqc --version > v_fastqc.txt
+*    multiqc --version > v_multiqc.txt
+*    cat ${baseDir}/containers/arriba/environment.yml > v_arriba.txt
+*    cat ${baseDir}/containers/fusioncatcher/environment.yml > v_fusioncatcher.txt
+*    cat ${baseDir}/containers/star-fusion/environment.yml > v_fusion_inspector.txt
+*    cat ${baseDir}/containers/star-fusion/environment.yml > v_star_fusion.txt
+*    cat ${baseDir}/containers/ericscript/environment.yml > v_ericscript.txt
+*    cat ${baseDir}/containers/pizzly/environment.yml > v_pizzly.txt
+*    cat ${baseDir}/containers/squid/environment.yml > v_squid.txt
+*    cat ${baseDir}/environment.yml > v_fusion_report.txt
+*    scrape_software_versions.py &> software_versions_mqc.yaml
+*    """
+*}
+*/
 
 /*
  * FastQC
