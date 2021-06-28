@@ -162,7 +162,7 @@ process star_fusion {
         --left_fq ${reads[0]} \\
         --right_fq ${reads[1]} \\
         --CPU ${task.cpus} \\
-        -O . ${extra_params}
+        --output_dir . ${extra_params}
 
     mv star-fusion.fusion_predictions.tsv ${sample}_star-fusion.tsv
     mv star-fusion.fusion_predictions.abridged.tsv ${sample}_abridged.tsv
