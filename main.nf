@@ -146,8 +146,7 @@ process star_fusion {
     input:
         set val(sample), file(reads) from read_files_star_fusion
         file(reference) from reference.star_fusion
-        file(star_index) from ch_star_index
-
+     
     output:
         set val(sample), file("${sample}_star-fusion.tsv") optional true into star_fusion_fusions
         file("*.{tsv,txt}") into star_fusion_output
@@ -156,13 +155,12 @@ process star_fusion {
 
     script:
     def avail_mem = task.memory ? "--limitBAMsortRAM ${task.memory.toBytes() - 100000000}" : ''
-    option = params.single_end ? "--left_fq ${reads[0]}" : "--left_fq ${reads[0]} --right_fq ${reads[1]}"
     def extra_params = params.star_fusion_opt ? params.star_fusion_opt : ''
     """
     STAR-Fusion \\
         --genome_lib_dir ${reference} \\
-        --left_fq ${reads}[0] \\
-        --right_fq ${reads}[1] \\
+        --left_fq ${reads[0]} \\
+        --right_fq ${reads[1]} \\
         --CPU ${task.cpus} \\
         -O . ${extra_params}
 
@@ -172,63 +170,4 @@ process star_fusion {
 }
 
 star_fusion_fusions = star_fusion_fusions.dump(tag:'star_fusion_fusions')
-
-
-/*************************************************************
- * Quality check & software verions
- ************************************************************/
-
-/*
- * FastQC
- */
-process fastqc {
-    tag "$name"
-    label 'process_medium'
-    publishDir "${params.outdir}/fastqc", mode: 'copy',
-        saveAs: { filename ->
-                      filename.indexOf(".zip") > 0 ? "zips/$filename" : "$filename"
-                }
-
-    input:
-    set val(name), file(reads) from ch_read_files_fastqc
-
-    output:
-    file "*_fastqc.{zip,html}" into ch_fastqc_results
-
-    when: !params.debug
-
-    script:
-    """
-    fastqc --quiet --threads $task.cpus $reads
-    """
-}
-
-/*
- * MultiQC
- */
-process multiqc {
-    publishDir "${params.outdir}/MultiQC", mode: 'copy'
-
-    input:
-    file (multiqc_config) from ch_multiqc_config
-    file (mqc_custom_config) from ch_multiqc_custom_config.collect().ifEmpty([])
-    file ('fastqc/*') from ch_fastqc_results.collect().ifEmpty([])
-    file (fusions_mq) from summary_fusions_mq.collect().ifEmpty([])
-    file workflow_summary from ch_workflow_summary.collectFile(name: "workflow_summary_mqc.yaml")
-
-    output:
-    file "*multiqc_report.html" into ch_multiqc_report
-    file "*_data"
-    file "multiqc_plots"
-
-    when: !params.debug
-
-    script:
-    rtitle = custom_runName ? "--title \"$custom_runName\"" : ''
-    rfilename = custom_runName ? "--filename " + custom_runName.replaceAll('\\W','_').replaceAll('_+','_') + "_multiqc_report" : ''
-    custom_config_file = params.multiqc_config ? "--config $mqc_custom_config" : ''
-    """
-    multiqc -f $rtitle $rfilename $custom_config_file .
-    """
-}
 
